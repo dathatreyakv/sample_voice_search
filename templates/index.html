@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block head %}
+
+<title>Search Page</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% endblock %}
+
+{% block body %}
+
+<h4 align="center"> Speach to text converter</h4>
+    <div id="search-text"></div>
+    <button><i class="fa fa-microphone"></i></button>
+    <script type="text/javascript">
+        var r = document.getElementById('search-text');
+        function startConvertion() {
+            window.SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+            if(window.SpeechRecognition) {
+                var speechRecognizer = new window.SpeechRecognition();
+                // var speechRecognizer = new webkitSpeechRecognition();
+                speechRecognizer.continuous = true;
+                speechRecognizer.interimResults = true;
+                speechRecognizer.lang = 'en-IN';
+                speechRecognizer.start();
+                speechRecognizer.onresult = function(event) {
+                    var finalTranscripts = '';
+                    var interimTranscripts = '';
+                    var last_indx = event.results.length - 1;
+                    var transcript = event.results[last_indx][0].transcript.trim();
+                    var data = transcript.toLowerCase().replace("<br>","");
+
+                    //if(data.startsWith("google") || data.startsWith("wiki") || data.startsWith("vicky")) {
+                        if (event.results[last_indx].isFinal) {
+                            // transcript = transcript.slice(transcript.indexOf(" "))
+                            //ranscript =  transcript.concat("<br>")
+                            finalTranscripts += transcript;
+                        } else {
+                            interimTranscripts += transcript;
+                        }
+                    //}
+
+                    if (event.results[last_indx].isFinal) {
+                        var val = document.getElementById('content');
+                        val.value = finalTranscripts;
+                        document.getElementById("search-form").submit();
+                    }
+
+                    r.innerHTML = finalTranscripts + '<span style="color:#999">' + interimTranscripts + '</span>';
+                } ;
+                speechRecognizer.onerror = function(event) {
+                    "Some Error Occure"
+                }
+            } else {
+                r.innerHTML = 'Your Browser is not supported. If google chrome, please upgrade!';
+            }
+        };
+        startConvertion();
+    </script>
+
+<div class="content">
+
+
+    <div class="form">
+        <form id="search-form" action="/review" method="POST">
+            <input type="text" name="content" id="content">
+            <input type="submit" value="Search">
+        </form>
+    </div>
+</div>
+{% endblock %}
